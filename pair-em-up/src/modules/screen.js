@@ -6,7 +6,7 @@ export function createScreen() {
   const app = document.createElement("div");
   app.className = "app";
 
-  app.append(createHeader(), createModeSelection());
+  app.append(createHeader(), createModeSelection(), createFooter());
   document.body.append(app);
 }
 
@@ -51,4 +51,25 @@ const createModeSelection = () => {
   controls.append(classicBtn, randomBtn, chaoticBtn);
 
   return controls;
+};
+
+const createFooter = () => {
+  const footer = document.createElement("footer");
+  footer.className = "footer";
+
+  const settingBtn = document.createElement("button");
+  settingBtn.textContent = "Setting";
+  settingBtn.className = "btn setting";
+
+  const continueBtn = document.createElement("button");
+  continueBtn.textContent = "Continue Game";
+  continueBtn.className = "btn continue";
+
+  const resultsBtn = document.createElement("button");
+  resultsBtn.textContent = "Results";
+  resultsBtn.className = "btn results";
+
+  footer.append(settingBtn, continueBtn, resultsBtn);
+
+  return footer;
 };

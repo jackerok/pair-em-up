@@ -60,3 +60,16 @@ h1 {
 .btn:active {
   background-color: #2e6d2e;
 }
+
+.footer {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting,
+.continue,
+.results {
+  margin-top: 1.5rem;
+  background-color: #1c701f;
+  padding: 1rem 4rem;
+}
