@@ -1,11 +1,22 @@
-body {
-  background-color: #b4cfad;
-  font-family: "Inter", sans-serif;
+:root {
+  --bg-color: #f5f5f5;
+  --text-color: #333;
+  --ui-color: #ffffff;
+  --interactive-color: #e0e0e0;
 }
 
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+p {
+  margin: 0.5rem 0rem;
+}
 h1 {
-  font-size: 2.5rem;
-  color: #4caf50;
+  font-size: 3.5rem;
 }
 
 .app {
@@ -47,14 +58,13 @@ h1 {
   padding: 1rem 2rem;
   border-radius: 5px;
   border: none;
-  background-color: #4caf50;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .btn:hover {
-  background-color: #37833a;
+  background-color: #87a788;
 }
 
 .btn:active {
@@ -72,4 +82,60 @@ h1 {
   margin-top: 1.5rem;
   background-color: #1c701f;
   padding: 1rem 4rem;
+}
+
+// Settings
+.options__wrapper {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.description {
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.theme__wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.sound__wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.sound-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.sound__description {
+  flex-direction: column;
+}
+
+.back {
+  margin-top: 1.5rem;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  border: 0;
+  cursor: pointer;
+}
+
+.default {
+  margin-top: 1.5rem;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  border: 0;
+  cursor: pointer;
 }

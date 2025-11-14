@@ -1,4 +1,5 @@
 // import { startGame } from "../game.js";
+import { createSettings } from "./settings.js";
 
 export function createScreen() {
   document.body.innerHTML = "";
@@ -8,6 +9,7 @@ export function createScreen() {
 
   app.append(createHeader(), createModeSelection(), createFooter());
   document.body.append(app);
+  loadSettings();
 }
 
 const createHeader = () => {
@@ -60,6 +62,7 @@ const createFooter = () => {
   const settingBtn = document.createElement("button");
   settingBtn.textContent = "Setting";
   settingBtn.className = "btn setting";
+  settingBtn.addEventListener("click", () => createSettings());
 
   const continueBtn = document.createElement("button");
   continueBtn.textContent = "Continue Game";
@@ -72,4 +75,25 @@ const createFooter = () => {
   footer.append(settingBtn, continueBtn, resultsBtn);
 
   return footer;
+};
+
+const loadSettings = () => {
+  const btn = document.querySelectorAll(".btn");
+  document.body.style.backgroundColor =
+    localStorage["backgroundColor"] || "#b4cfad";
+  document.body.style.color = localStorage["uiColor"] || "black";
+
+  btn.forEach((btn) => {
+    btn.style.backgroundColor = localStorage["uiColor"] || "#4caf50";
+    btn.addEventListener("mouseenter", () => {
+      btn.style.backgroundColor = localStorage["interactiveColor"] || "#87a788";
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn.style.backgroundColor = localStorage["uiColor"] || "#4caf50";
+    });
+  });
+  if (localStorage["darkMode"] === "true") {
+    document.body.style.backgroundColor = "#222";
+    document.body.style.color = "#fff";
+  }
 };
