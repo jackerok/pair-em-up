@@ -1,0 +1,35 @@
+body {
+  background-color: #b4cfad;
+  font-family: "Inter", sans-serif;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #4caf50;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header {
+  margin-top: 2rem;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  row-gap: 1rem;
+}
+
+.header__author {
+  text-decoration: none;
+  color: inherit;
+}
+
+.header__author:hover {
+  text-decoration: underline;
+  color: #515251;
+}
