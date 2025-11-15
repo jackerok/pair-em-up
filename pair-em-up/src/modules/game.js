@@ -1,4 +1,5 @@
 import { createScreen } from "./screen.js";
+import { generateNumbers } from "./generator.js";
 
 const COLS = 9;
 const TARGET_SCORE = 100;
@@ -6,6 +7,13 @@ const TARGET_SCORE = 100;
 let state = {};
 
 export const startGame = (mode) => {
+  state.mode = mode;
+  state.score = 0;
+  state.selected = [];
+  state.lock = false;
+  state.numbers = generateNumbers(mode);
+  state.cols = COLS;
+  console.log(state.numbers);
   createGameLayout(mode);
 
   stopTimer();
@@ -14,7 +22,6 @@ export const startGame = (mode) => {
 
 const createGameLayout = (mode) => {
   document.body.innerHTML = "";
-  console.log("new", mode);
 
   document.body.append(createHeader(mode));
 };
