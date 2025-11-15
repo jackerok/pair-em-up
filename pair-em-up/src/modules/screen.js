@@ -1,3 +1,4 @@
+import { startGame } from "./game.js";
 import { createSettings } from "./settings.js";
 
 export function createScreen() {
@@ -41,6 +42,7 @@ const createModeSelection = (buttons) => {
 
   ["Classic", "Random", "Chaotic"].forEach((mode) => {
     const btn = createButton(mode, "btn");
+    btn.addEventListener("click", () => startGame(mode.toLowerCase()));
     section.append(btn);
     buttons[mode.toLowerCase()] = btn;
   });

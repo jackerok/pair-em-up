@@ -109,9 +109,11 @@ const createColor = (color, field) => {
 
       const menu = document.querySelector(".back");
       const def = document.querySelector(".default");
+      const darkBtn = document.querySelector(".dark-mode");
 
       if (menu) menu.style.backgroundColor = color;
       if (def) def.style.backgroundColor = color;
+      if (darkBtn) darkBtn.style.backgroundColor = color;
     }
   });
 
@@ -153,10 +155,12 @@ const getDefault = () => {
 
   defaultBtn.addEventListener("click", () => {
     const backBtn = document.querySelector(".back");
+    const darkBtn = document.querySelector(".dark-mode");
     document.body.style.backgroundColor = "#b4cfad";
     document.body.style.color = "black";
     defaultBtn.style.backgroundColor = "#4caf50";
     backBtn.style.backgroundColor = "#4caf50";
+    darkBtn.style.backgroundColor = "#4caf50";
     localStorage.clear();
 
     localStorage.setItem("cellSelection", true);
@@ -182,9 +186,11 @@ const createDarkModeButton = () => {
   darkBtn.textContent = "Night Mode";
   darkBtn.className = "dark-mode";
 
+  const ui = localStorage["uiColor"] || "#4caf50";
+
+  darkBtn.style.backgroundColor = ui;
+
   const isDark = localStorage["darkMode"] === "true";
-  darkBtn.style.backgroundColor = isDark ? "#333" : "#4caf50";
-  darkBtn.style.color = isDark ? "#fff" : "#000";
 
   darkBtn.addEventListener("click", () => {
     const body = document.body;
