@@ -124,6 +124,14 @@ h2 {
   gap: 0.7rem;
 }
 
+.options {
+  margin-top: 3rem;
+}
+
+.halloween-btn {
+  margin-top: 0.5rem;
+}
+
 .sound__description {
   flex-direction: column;
 }
@@ -182,4 +190,50 @@ h2 {
 .timer {
   display: flex;
   column-gap: 0.5rem;
+}
+
+.board {
+  max-width: 1440px;
+  margin: 0 auto;
+  margin-top: 2rem;
+  padding: 20px 20px;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(5px, 120px));
+  grid-template-rows: repeat(3, minmax(5px, 90px));
+  gap: 2rem;
+  justify-content: center;
+
+  @media (max-width: 700px) {
+    gap: 1rem;
+  }
+
+  @media (max-width: 500px) {
+    gap: 0.4rem;
+  }
+}
+
+.cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--ui-color);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cell:hover {
+  background-color: #87a788;
+}
+
+.cell:active {
+  background-color: #2e6d2e;
+}
+
+.game-footer {
+  width: 100%;
+  display: flex;
+  justify-content: start;
+  position: absolute;
+  bottom: 0;
 }

@@ -18,20 +18,19 @@ export const generateNumbers = (mode) => {
   if (mode === "random") {
     const base = makeBaseSet();
     return shuffle(base);
-
-    if (mode === "chaotic") {
-      const vals = [];
-      for (let i = 0; i < 27; i++) vals.push(Math.floor(Math.random() * 9) + 1);
-      return vals;
-    }
   }
-
-  function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
+  if (mode === "chaotic") {
+    const vals = [];
+    for (let i = 0; i < 27; i++) vals.push(Math.floor(Math.random() * 9) + 1);
+    return vals;
   }
 };
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}

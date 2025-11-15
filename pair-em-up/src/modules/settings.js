@@ -22,6 +22,7 @@ export function createSettings() {
 
   optionsWrapper.append(
     createDarkModeButton(),
+    createHalloweenButton(),
     themeWrapper,
     soundWrapper,
     linkToMainPage(),
@@ -110,10 +111,11 @@ const createColor = (color, field) => {
       const menu = document.querySelector(".back");
       const def = document.querySelector(".default");
       const darkBtn = document.querySelector(".dark-mode");
-
+      const halloweenBtn = document.querySelector(".halloween-btn");
       if (menu) menu.style.backgroundColor = color;
       if (def) def.style.backgroundColor = color;
       if (darkBtn) darkBtn.style.backgroundColor = color;
+      if (halloweenBtn) halloweenBtn.style.backgroundColor = color;
     }
   });
 
@@ -156,11 +158,13 @@ const getDefault = () => {
   defaultBtn.addEventListener("click", () => {
     const backBtn = document.querySelector(".back");
     const darkBtn = document.querySelector(".dark-mode");
+    const halloweenBtn = document.querySelector(".halloween-btn");
     document.body.style.backgroundColor = "#b4cfad";
     document.body.style.color = "black";
     defaultBtn.style.backgroundColor = "#4caf50";
     backBtn.style.backgroundColor = "#4caf50";
     darkBtn.style.backgroundColor = "#4caf50";
+    halloweenBtn.style.backgroundColor = "#4caf50";
     localStorage.clear();
 
     localStorage.setItem("cellSelection", true);
@@ -190,8 +194,6 @@ const createDarkModeButton = () => {
 
   darkBtn.style.backgroundColor = ui;
 
-  const isDark = localStorage["darkMode"] === "true";
-
   darkBtn.addEventListener("click", () => {
     const body = document.body;
     const isCurrentlyDark = localStorage["darkMode"] === "true";
@@ -212,4 +214,50 @@ const createDarkModeButton = () => {
   });
 
   return darkBtn;
+};
+
+const createHalloweenButton = () => {
+  const btn = document.createElement("button");
+  btn.textContent = "🎃 Halloween Theme";
+  btn.className = "halloween-btn";
+  const ui = localStorage["uiColor"] || "#4caf50";
+  btn.style.backgroundColor = ui;
+
+  if (localStorage["theme"] === "halloween") {
+    applyHalloweenTheme();
+  }
+
+  btn.addEventListener("click", () => {
+    applyHalloweenTheme();
+    localStorage["theme"] = "halloween";
+  });
+
+  btn.addEventListener("mouseenter", () => {
+    btn.style.backgroundColor = localStorage["interactiveColor"] || "#87a788";
+  });
+  btn.addEventListener("mouseleave", () => {
+    btn.style.backgroundColor = localStorage["uiColor"] || "#4caf50";
+  });
+
+  return btn;
+};
+
+const applyHalloweenTheme = () => {
+  document.body.style.backgroundColor = "#1b0a1e";
+  document.body.style.color = "#ff8c00";
+
+  const uiColor = "#ff7518";
+  const interactive = "#ffa94d";
+  localStorage["uiColor"] = uiColor;
+  localStorage["interactiveColor"] = interactive;
+
+  localStorage["gridColor"] = "#3b1d3a";
+  localStorage["backgroundColor"] = "#1b0a1e";
+
+  document.querySelectorAll("button").forEach((b) => {
+    b.style.backgroundColor = uiColor;
+    b.style.color = "#000";
+  });
+
+  localStorage["darkMode"] = "false";
 };
