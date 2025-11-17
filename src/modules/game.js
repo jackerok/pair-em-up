@@ -40,6 +40,7 @@ export const startGame = (mode) => {
   if (localStorage.getItem("musicStartEnd") === "true") {
     playSound(winSound);
   }
+  updateHintCount();
   stopTimer();
   startTimer();
   updateAssistBtn();
@@ -262,14 +263,8 @@ function createFooter() {
 }
 
 function undoMove() {
-  if (state.history.length === 0) return;
-
-  const lastMove = state.history.pop();
-  lastMove.forEach(({ index, value }) => {
-    state.numbers[index] = value;
-  });
-
   reRenderBoard();
+  updateHintCount();
   updateScore();
 }
 
@@ -301,6 +296,7 @@ function useEraser() {
   state.numbers[idx] = null;
   state.selected = [];
   reRenderBoard();
+  updateHintCount();
   if (localStorage.getItem("assistTool") === "true") {
     playSound(assistSound);
   }
@@ -378,6 +374,7 @@ const checkPair = () => {
       cell2.classList.add("matched");
       state.score += points;
       updateScore();
+      updateHintCount();
       if (localStorage.getItem("correctPair") === "true") {
         playSound(successSound);
       }
@@ -525,6 +522,7 @@ function useAssist() {
   state.numbers = state.numbers.concat(newRow);
   reRenderBoard();
   updateAssistBtn();
+  updateHintCount();
   saveGame();
   checkLose();
 
@@ -596,23 +594,6 @@ const saveGame = () => {
   );
 };
 
-const loadGame = () => {
-  const saved = JSON.parse(localStorage.getItem("gameState"));
-  if (saved) {
-    state.numbers = saved.numbers;
-    state.score = saved.score;
-    state.time = saved.time;
-    state.mode = saved.mode;
-    state.assistCount = saved.assistCount || MAX_ASSISTS;
-    createGameLayout(saved.mode);
-    updateScore();
-    updateAssistBtn();
-    startTimer();
-  } else {
-    startGame("Classic");
-  }
-};
-
 function startTimer() {
   const timerEl = document.getElementById("timer");
   let seconds = 0;
@@ -648,4 +629,29 @@ function createBtn(text) {
   btn.style.backgroundColor = localStorage["uiColor"] || "#4caf50";
   hoverBtn(btn);
   return btn;
+}
+
+function updateHintCount() {
+  if (!state.numbers) return;
+
+  const cells = document.querySelectorAll(".cell");
+  const cols = state.cols;
+  let count = 0;
+
+  for (let i = 0; i < state.numbers.length; i++) {
+    const val1 = state.numbers[i];
+    if (val1 === null) continue;
+
+    for (let j = i + 1; j < state.numbers.length; j++) {
+      const val2 = state.numbers[j];
+      if (val2 === null) continue;
+
+      if (canPair(i, j) && (val1 === val2 || val1 + val2 === 10)) {
+        count++;
+      }
+    }
+  }
+
+  const btn = document.getElementById("hint-btn");
+  if (btn) btn.textContent = count > 5 ? "Hints (5+)" : `Hints (${count})`;
 }

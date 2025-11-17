@@ -10,6 +10,15 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
+  margin-bottom: 12rem;
+
+  @media (max-width: 800px) {
+    margin-bottom: 17rem;
+  }
+
+  @media (max-width: 600px) {
+    margin-bottom: 13rem;
+  }
 }
 
 p {
@@ -236,4 +245,9 @@ h2 {
   display: flex;
   justify-content: start;
   bottom: 0;
+
+  @media (max-width: 800px) {
+    display: flex;
+    flex-direction: column;
+  }
 }
