@@ -194,14 +194,14 @@ h2 {
 
 .board {
   max-width: 1440px;
-  margin: 0 auto;
-  margin-top: 2rem;
+  margin: 2.5rem auto;
+  margin-top: 1rem;
   padding: 20px 20px;
   display: grid;
   grid-template-columns: repeat(9, minmax(5px, 120px));
-  grid-template-rows: repeat(3, minmax(5px, 90px));
   gap: 2rem;
   justify-content: center;
+  grid-auto-rows: minmax(5px, 90px);
 
   @media (max-width: 700px) {
     gap: 1rem;
@@ -231,9 +231,9 @@ h2 {
 }
 
 .game-footer {
+  position: fixed;
   width: 100%;
   display: flex;
   justify-content: start;
-  position: absolute;
   bottom: 0;
 }

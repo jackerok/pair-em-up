@@ -10,6 +10,10 @@ import soundError from "./error.mp3";
 
 const COLS = 9;
 const TARGET_SCORE = 100;
+const MAX_ROWS = 50;
+const MAX_ASSISTS = 10;
+const MAX_MIX = 5;
+const MAX_ERASER = 5;
 
 let state = {};
 
@@ -20,12 +24,14 @@ export const startGame = (mode) => {
   state.lock = false;
   state.numbers = generateNumbers(mode);
   state.cols = COLS;
+  state.assistCount = MAX_ASSISTS;
   createGameLayout(mode);
   if (localStorage.getItem("musicStartEnd") === "true") {
     playSound(winSound);
   }
   stopTimer();
   startTimer();
+  updateAssistBtn();
 };
 
 const createGameLayout = (mode) => {
@@ -101,7 +107,66 @@ const createBoard = () => {
   return board;
 };
 
-const createFooter = () => {
+function showHint() {
+  if (!state.numbers) return;
+
+  const cells = document.querySelectorAll(".cell");
+  const cols = state.cols;
+  let count = 0;
+
+  cells.forEach((cell) => {
+    if (
+      !cell.classList.contains("matched") &&
+      !cell.classList.contains("selected")
+    ) {
+      cell.style.backgroundColor = "#ffffff";
+    }
+  });
+
+  for (let i = 0; i < state.numbers.length; i++) {
+    const val1 = state.numbers[i];
+    if (val1 === null) continue;
+
+    for (let j = i + 1; j < state.numbers.length; j++) {
+      const val2 = state.numbers[j];
+      if (val2 === null) continue;
+
+      if (canPair(i, j) && (val1 === val2 || val1 + val2 === 10)) {
+        count++;
+
+        if (
+          !cells[i].classList.contains("matched") &&
+          !cells[i].classList.contains("selected")
+        ) {
+          cells[i].style.backgroundColor = "orange";
+        }
+        if (
+          !cells[j].classList.contains("matched") &&
+          !cells[j].classList.contains("selected")
+        ) {
+          cells[j].style.backgroundColor = "orange";
+        }
+      }
+    }
+  }
+
+  setTimeout(() => {
+    cells.forEach((cell) => {
+      if (
+        !cell.classList.contains("matched") &&
+        !cell.classList.contains("selected")
+      ) {
+        cell.style.backgroundColor = "#ffffff";
+      }
+    });
+  }, 1500);
+
+  const btn = document.getElementById("hint-btn");
+  btn.textContent = count > 5 ? "Hints (5+)" : `Hints (${count})`;
+  checkLose();
+}
+
+function createFooter() {
   const section = document.createElement("section");
   section.className = "game-footer";
 
@@ -110,28 +175,129 @@ const createFooter = () => {
 
   const continueBtn = createBtn("Continue game");
   const saveBtn = createBtn("Save game");
-  const assistBtn = createBtn("Assist");
+  const assistBtn = createBtn(`Add rows (${state.assistCount})`);
+  assistBtn.id = "assist-btn";
+
+  const hintBtn = createBtn(`Hints (0)`);
+  hintBtn.id = "hint-btn";
+  state.hintCount = 0;
+
+  const undoBtn = createBtn("Undo");
+  undoBtn.id = "undo-btn";
+  state.undoUsed = false;
+
+  const mixBtn = createBtn(`Mix (${MAX_MIX})`);
+  mixBtn.id = "mix-btn";
+  state.mixUsed = 0;
+
+  const eraserBtn = createBtn(`Eraser (${MAX_ERASER})`);
+  eraserBtn.id = "eraser-btn";
+  state.eraserUsed = 0;
+
   const settingsBtn = createBtn("Settings");
 
-  section.append(status, continueBtn, saveBtn, assistBtn, settingsBtn);
+  section.append(
+    continueBtn,
+    saveBtn,
+    settingsBtn,
+    assistBtn,
+    hintBtn,
+    undoBtn,
+    mixBtn,
+    eraserBtn,
+    status
+  );
 
   section.addEventListener("click", (e) => {
-    if (e.target.textContent === "Continue game") {
+    const target = e.target;
+
+    switch (target.id) {
+      case "assist-btn":
+        useAssist();
+        break;
+      case "hint-btn":
+        if (localStorage.getItem("assistTool") === "true") {
+          playSound(assistSound);
+        }
+        showHint();
+        break;
+      case "undo-btn":
+        if (localStorage.getItem("assistTool") === "true") {
+          playSound(assistSound);
+        }
+        undoMove();
+        break;
+      case "mix-btn":
+        if (localStorage.getItem("assistTool") === "true") {
+          playSound(assistSound);
+        }
+        mixBoard();
+        break;
+      case "eraser-btn":
+        useEraser();
+        break;
+    }
+
+    if (target.textContent === "Continue game") {
       startGame(state.mode);
-    } else if (e.target.textContent === "Save game") {
+    } else if (target.textContent === "Save game") {
       saveGame();
-    } else if (e.target.textContent === "Assist") {
-      if (localStorage.getItem("assistTool") === "true") {
-        playSound(assistSound);
-      }
-      assist();
-    } else if (e.target.textContent === "Settings") {
+    } else if (target.textContent === "Settings") {
       createSettings();
     }
   });
 
   return section;
-};
+}
+
+function undoMove() {
+  if (state.history.length === 0) return;
+
+  const lastMove = state.history.pop();
+  lastMove.forEach(({ index, value }) => {
+    state.numbers[index] = value;
+  });
+
+  reRenderBoard();
+  updateScore();
+}
+
+function mixBoard() {
+  if (state.mixUsed >= MAX_MIX) return;
+
+  const numbers = state.numbers.filter((n) => n !== null);
+  for (let i = numbers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+  }
+
+  let idx = 0;
+  state.numbers = state.numbers.map((n) =>
+    n === null ? null : numbers[idx++]
+  );
+  reRenderBoard();
+
+  state.mixUsed++;
+  const btn = document.getElementById("mix-btn");
+  btn.textContent = `Mix (${MAX_MIX - state.mixUsed})`;
+  saveGame();
+}
+
+function useEraser() {
+  if (state.eraserUsed >= MAX_ERASER || state.selected.length === 0) return;
+
+  const idx = state.selected[0];
+  state.numbers[idx] = null;
+  state.selected = [];
+  reRenderBoard();
+  if (localStorage.getItem("assistTool") === "true") {
+    playSound(assistSound);
+  }
+  state.eraserUsed++;
+  const btn = document.getElementById("eraser-btn");
+  btn.textContent = `Eraser (${MAX_ERASER - state.eraserUsed})`;
+  saveGame();
+}
 
 const handleCellClick = (cell) => {
   if (state.lock) return;
@@ -174,7 +340,6 @@ const checkPair = () => {
     setTimeout(() => {
       cell1.classList.remove("selected");
       cell2.classList.remove("selected");
-
       if (localStorage.getItem("invalidPair") === "true") {
         playSound(soundError);
       }
@@ -209,16 +374,15 @@ const checkPair = () => {
       state.lock = false;
       checkWin();
       saveGame();
+      checkLose();
     }, 300);
   } else {
     setTimeout(() => {
       cell1.classList.remove("selected");
       cell2.classList.remove("selected");
-
       if (localStorage.getItem("invalidPair") === "true") {
         playSound(soundError);
       }
-
       state.selected = [];
       state.lock = false;
     }, 500);
@@ -286,6 +450,128 @@ const checkWin = () => {
   }
 };
 
+function checkLose() {
+  const rows = Math.ceil(state.numbers.length / COLS);
+
+  // Проверка ограничения сетки
+  if (rows >= MAX_ROWS) {
+    stopTimer();
+    const status = document.querySelector(".game-status");
+    status.textContent = "❌ Grid limit reached — You lose!";
+    status.style.color = "red";
+    if (localStorage.getItem("musicStartEnd") === "true") {
+      playSound(winSound);
+    }
+    return true;
+  }
+
+  let movesAvailable = false;
+  for (let i = 0; i < state.numbers.length; i++) {
+    if (state.numbers[i] === null) continue;
+    for (let j = i + 1; j < state.numbers.length; j++) {
+      if (state.numbers[j] === null) continue;
+      const val1 = state.numbers[i];
+      const val2 = state.numbers[j];
+      if (canPair(i, j) && (val1 === val2 || val1 + val2 === 10)) {
+        movesAvailable = true;
+        break;
+      }
+    }
+    if (movesAvailable) break;
+  }
+
+  // Добавляем условие: поражение если нет доступных ходов и Add rows = 0
+  if (!movesAvailable && state.assistCount === 0) {
+    stopTimer();
+    const status = document.querySelector(".game-status");
+    status.textContent = "❌ No moves left — You lose!";
+    status.style.color = "red";
+    if (localStorage.getItem("musicStartEnd") === "true") {
+      playSound(winSound);
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function useAssist() {
+  if (state.assistCount <= 0) return;
+
+  const rows = state.numbers.length / COLS;
+  if (rows >= MAX_ROWS) {
+    lose_GridLimit();
+    return;
+  }
+
+  if (localStorage.getItem("assistTool") === "true") {
+    playSound(assistSound);
+  }
+
+  state.assistCount--;
+
+  const newRow = generateNumbers(state.mode);
+  state.numbers = state.numbers.concat(newRow);
+  reRenderBoard();
+  updateAssistBtn();
+  saveGame();
+  checkLose();
+
+  if (state.numbers.length / COLS >= MAX_ROWS) {
+    lose_GridLimit();
+    return;
+  }
+}
+
+function reRenderBoard() {
+  const board = document.querySelector(".board");
+  board.innerHTML = "";
+
+  board.style.backgroundColor = localStorage["gridColor"] || "#68d073ff";
+
+  state.numbers.forEach((n, idx) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.index = idx;
+    cell.dataset.value = n;
+    cell.style.border = `1px solid ${localStorage["uiColor"] || "#0c3e05ff"}`;
+
+    if (n !== null) {
+      cell.innerHTML = `<div class="cell-num">${n}</div>`;
+    }
+
+    cell.addEventListener("mouseenter", () => {
+      if (!cell.classList.contains("selected")) {
+        cell.style.backgroundColor =
+          localStorage["interactiveColor"] || "#4caf50";
+      }
+    });
+
+    cell.addEventListener("mouseleave", () => {
+      if (!cell.classList.contains("selected")) {
+        cell.style.backgroundColor = "#ffffff";
+      }
+    });
+
+    cell.addEventListener("click", () => handleCellClick(cell));
+
+    board.append(cell);
+  });
+}
+
+function updateAssistBtn() {
+  const btn = document.getElementById("assist-btn");
+  if (!btn) return;
+  btn.textContent = `Add rows (${state.assistCount})`;
+}
+
+function lose_GridLimit() {
+  stopTimer();
+  const status = document.querySelector(".game-status");
+  status.textContent = "❌ Grid limit reached — You lose!";
+  status.style.color = "red";
+}
+
 const saveGame = () => {
   localStorage.setItem(
     "gameState",
@@ -294,6 +580,7 @@ const saveGame = () => {
       score: state.score,
       time: state.time,
       mode: state.mode,
+      assistCount: state.assistCount,
     })
   );
 };
@@ -305,8 +592,10 @@ const loadGame = () => {
     state.score = saved.score;
     state.time = saved.time;
     state.mode = saved.mode;
+    state.assistCount = saved.assistCount || MAX_ASSISTS;
     createGameLayout(saved.mode);
     updateScore();
+    updateAssistBtn();
     startTimer();
   } else {
     startGame("Classic");
