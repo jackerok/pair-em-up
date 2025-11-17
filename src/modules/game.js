@@ -2,11 +2,12 @@ import { createScreen } from "./screen.js";
 import { generateNumbers } from "./generator.js";
 import { createSettings } from "./settings.js";
 import { playSound } from "./playSound.js";
-import soundFile from "./sound.mp3";
-import assistSound from "./assist.mp3";
-import winSound from "./win.mp3";
-import successSound from "./success.mp3";
-import soundError from "./error.mp3";
+
+const soundFile = "/sound.mp3";
+const assistSound = "/assist.mp3";
+const winSound = "/win.mp3";
+const successSound = "/success.mp3";
+const soundError = "/error.mp3";
 
 const COLS = 9;
 const TARGET_SCORE = 100;
@@ -16,6 +17,16 @@ const MAX_MIX = 5;
 const MAX_ERASER = 5;
 
 let state = {};
+
+export {
+  COLS,
+  TARGET_SCORE,
+  soundFile,
+  assistSound,
+  winSound,
+  successSound,
+  soundError,
+};
 
 export const startGame = (mode) => {
   state.mode = mode;
