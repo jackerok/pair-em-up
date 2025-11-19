@@ -3,9 +3,9 @@ import { generateNumbers } from "./generator.js";
 import { createSettings } from "./settings.js";
 import { playSound } from "./playSound.js";
 
+const winSound = "/win.mp3";
 const soundFile = "/sound.mp3";
 const assistSound = "/assist.mp3";
-const winSound = "/win.mp3";
 const successSound = "/success.mp3";
 const soundError = "/error.mp3";
 
@@ -17,7 +17,7 @@ const MAX_MIX = 5;
 const MAX_ERASER = 5;
 
 let state = {};
-let history = []; // стек истории для Undo (будет хранить только один предыдущий ход)
+let history = [];
 const HISTORY_LIMIT = 50;
 
 export {
@@ -40,10 +40,9 @@ export const startGame = (mode) => {
   state.assistCount = MAX_ASSISTS;
   state.mixUsed = 0;
   state.eraserUsed = 0;
-  history = []; // очищаем историю при старте новой игры
+  history = [];
 
   createGameLayout(mode);
-  // сохраняем начальное состояние в истории (чтобы undo мог откатить только после первого хода)
   pushHistory();
 
   if (localStorage.getItem("musicStartEnd") === "true") {
