@@ -17,6 +17,8 @@ const MAX_MIX = 5;
 const MAX_ERASER = 5;
 
 let state = {};
+let history = []; // стек истории для Undo (будет хранить только один предыдущий ход)
+const HISTORY_LIMIT = 50;
 
 export {
   COLS,
@@ -36,7 +38,14 @@ export const startGame = (mode) => {
   state.numbers = generateNumbers(mode);
   state.cols = COLS;
   state.assistCount = MAX_ASSISTS;
+  state.mixUsed = 0;
+  state.eraserUsed = 0;
+  history = []; // очищаем историю при старте новой игры
+
   createGameLayout(mode);
+  // сохраняем начальное состояние в истории (чтобы undo мог откатить только после первого хода)
+  pushHistory();
+
   if (localStorage.getItem("musicStartEnd") === "true") {
     playSound(winSound);
   }
@@ -196,15 +205,14 @@ function createFooter() {
 
   const undoBtn = createBtn("Undo");
   undoBtn.id = "undo-btn";
-  state.undoUsed = false;
 
   const mixBtn = createBtn(`Mix (${MAX_MIX})`);
   mixBtn.id = "mix-btn";
-  state.mixUsed = 0;
+  state.mixUsed = state.mixUsed || 0;
 
   const eraserBtn = createBtn(`Eraser (${MAX_ERASER})`);
   eraserBtn.id = "eraser-btn";
-  state.eraserUsed = 0;
+  state.eraserUsed = state.eraserUsed || 0;
 
   const settingsBtn = createBtn("Settings");
 
@@ -262,14 +270,53 @@ function createFooter() {
   return section;
 }
 
+function pushHistory() {
+  // сохраняем только один предыдущий ход (глубокая копия массива numbers)
+  if (!state.numbers) return;
+  const snapshot = {
+    numbers: state.numbers.slice(),
+    score: state.score,
+    assistCount: state.assistCount,
+    mixUsed: state.mixUsed,
+    eraserUsed: state.eraserUsed,
+    time: state.time || 0,
+  };
+  history = [snapshot];
+}
+
 function undoMove() {
+  if (history.length === 0) return;
+
+  const prev = history[0];
+  history = []; // очищаем — один шаг уже использован
+
+  state.numbers = prev.numbers.slice();
+  state.score = prev.score;
+  state.assistCount = prev.assistCount;
+  state.mixUsed = prev.mixUsed;
+  state.eraserUsed = prev.eraserUsed;
+  state.selected = [];
+
+  updateScore();
+  updateAssistBtn();
+
+  const mixBtn = document.getElementById("mix-btn");
+  if (mixBtn) mixBtn.textContent = `Mix (${MAX_MIX - state.mixUsed})`;
+
+  const eraserBtn = document.getElementById("eraser-btn");
+  if (eraserBtn)
+    eraserBtn.textContent = `Eraser (${MAX_ERASER - state.eraserUsed})`;
+
   reRenderBoard();
   updateHintCount();
-  updateScore();
+  saveGame();
 }
 
 function mixBoard() {
   if (state.mixUsed >= MAX_MIX) return;
+
+  // сохраняем до перемешивания
+  pushHistory();
 
   const numbers = state.numbers.filter((n) => n !== null);
   for (let i = numbers.length - 1; i > 0; i--) {
@@ -291,6 +338,9 @@ function mixBoard() {
 
 function useEraser() {
   if (state.eraserUsed >= MAX_ERASER || state.selected.length === 0) return;
+
+  // сохраняем до стирания
+  pushHistory();
 
   const idx = state.selected[0];
   state.numbers[idx] = null;
@@ -365,6 +415,9 @@ const checkPair = () => {
   }
 
   if (points > 0) {
+    // сохраняем до удаления пары
+    pushHistory();
+
     setTimeout(() => {
       cell1.innerHTML = "";
       cell2.innerHTML = "";
@@ -443,15 +496,17 @@ const canPair = (i1, i2) => {
 
 const updateScore = () => {
   const scoreEl = document.getElementById("score");
-  scoreEl.textContent = `Score: ${state.score} / ${TARGET_SCORE}`;
+  if (scoreEl) scoreEl.textContent = `Score: ${state.score} / ${TARGET_SCORE}`;
 };
 
 const checkWin = () => {
   if (state.score >= TARGET_SCORE) {
     stopTimer();
     const status = document.querySelector(".game-status");
-    status.textContent = "🎉 You win!";
-    status.style.color = "#ffcc00";
+    if (status) {
+      status.textContent = "🎉 You win!";
+      status.style.color = "#ffcc00";
+    }
     if (localStorage.getItem("musicStartEnd") === "true") {
       playSound(winSound);
     }
@@ -465,8 +520,10 @@ function checkLose() {
   if (rows >= MAX_ROWS) {
     stopTimer();
     const status = document.querySelector(".game-status");
-    status.textContent = "❌ Grid limit reached — You lose!";
-    status.style.color = "red";
+    if (status) {
+      status.textContent = "❌ Grid limit reached — You lose!";
+      status.style.color = "red";
+    }
     if (localStorage.getItem("musicStartEnd") === "true") {
       playSound(winSound);
     }
@@ -492,8 +549,10 @@ function checkLose() {
   if (!movesAvailable && state.assistCount === 0) {
     stopTimer();
     const status = document.querySelector(".game-status");
-    status.textContent = "❌ No moves left — You lose!";
-    status.style.color = "red";
+    if (status) {
+      status.textContent = "❌ No moves left — You lose!";
+      status.style.color = "red";
+    }
     if (localStorage.getItem("musicStartEnd") === "true") {
       playSound(winSound);
     }
@@ -516,6 +575,9 @@ function useAssist() {
     playSound(assistSound);
   }
 
+  // сохраняем до добавления строки
+  pushHistory();
+
   state.assistCount--;
 
   const newRow = generateNumbers(state.mode);
@@ -534,6 +596,7 @@ function useAssist() {
 
 function reRenderBoard() {
   const board = document.querySelector(".board");
+  if (!board) return;
   board.innerHTML = "";
 
   board.style.backgroundColor = localStorage["gridColor"] || "#68d073ff";
@@ -577,8 +640,10 @@ function updateAssistBtn() {
 function lose_GridLimit() {
   stopTimer();
   const status = document.querySelector(".game-status");
-  status.textContent = "❌ Grid limit reached — You lose!";
-  status.style.color = "red";
+  if (status) {
+    status.textContent = "❌ Grid limit reached — You lose!";
+    status.style.color = "red";
+  }
 }
 
 const saveGame = () => {
@@ -596,6 +661,7 @@ const saveGame = () => {
 
 function startTimer() {
   const timerEl = document.getElementById("timer");
+  if (!timerEl) return;
   let seconds = 0;
   state.timerInterval = setInterval(() => {
     seconds++;
